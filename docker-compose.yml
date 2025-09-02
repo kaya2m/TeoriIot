@@ -1,0 +1,52 @@
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: iot-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong!Passw0rd
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - iot-network
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong!Passw0rd -Q "SELECT 1"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: iot-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__Main=Server=sqlserver,1433;Database=TeoriIot;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=true;MultipleActiveResultSets=true
+      - Jwt__Key=this-is-a-super-secret-key-that-should-be-at-least-256-bits-long-for-security-purposes
+      - Jwt__Issuer=TeoriIot.Api
+      - Jwt__Audience=TeoriIot.Client
+      - Jwt__AccessTokenExpirationMinutes=30
+      - Jwt__RefreshTokenExpirationDays=14
+      - Ingest__MasterKey=DEBUG_MASTER_KEY_123
+    ports:
+      - "5080:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - iot-network
+    restart: unless-stopped
+
+volumes:
+  sqlserver_data:
+
+networks:
+  iot-network:
+    driver: bridge

@@ -1,0 +1,379 @@
+{
+  "info": {
+    "name": "IoT Ingest API",
+    "description": "Collection for testing IoT Ingest API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5080"
+    },
+    {
+      "key": "apiKey",
+      "value": "YOUR_FIRMWARE_PASS"
+    },
+    {
+      "key": "masterKey",
+      "value": "DEBUG_MASTER_KEY_123"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', response.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', response.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"ChangeMe123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ingest",
+      "item": [
+        {
+          "name": "Form Ingest - Pin ON",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "kapilar_id",
+                  "value": "11"
+                },
+                {
+                  "key": "durum",
+                  "value": "1"
+                },
+                {
+                  "key": "pass",
+                  "value": "{{apiKey}}"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ingest",
+              "host": ["{{baseUrl}}"],
+              "path": ["ingest"]
+            }
+          }
+        },
+        {
+          "name": "Form Ingest - Pin OFF",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "kapilar_id",
+                  "value": "12"
+                },
+                {
+                  "key": "durum",
+                  "value": "0"
+                },
+                {
+                  "key": "pass",
+                  "value": "{{apiKey}}"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ingest",
+              "host": ["{{baseUrl}}"],
+              "path": ["ingest"]
+            }
+          }
+        },
+        {
+          "name": "Form Ingest - Heartbeat",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "kapilar_id",
+                  "value": "10"
+                },
+                {
+                  "key": "durum",
+                  "value": "0"
+                },
+                {
+                  "key": "pass",
+                  "value": "{{apiKey}}"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ingest",
+              "host": ["{{baseUrl}}"],
+              "path": ["ingest"]
+            }
+          }
+        },
+        {
+          "name": "Batch Ingest",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-DEVICE-KEY",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\"kapilarId\": 11, \"durum\": 1},\n    {\"kapilarId\": 12, \"durum\": 0},\n    {\"kapilarId\": 13, \"durum\": 1}\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ingest/batch",
+              "host": ["{{baseUrl}}"],
+              "path": ["ingest", "batch"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Read Endpoints",
+      "item": [
+        {
+          "name": "Get Devices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/devices",
+              "host": ["{{baseUrl}}"],
+              "path": ["devices"]
+            }
+          }
+        },
+        {
+          "name": "Get Device Inputs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/devices/0/inputs",
+              "host": ["{{baseUrl}}"],
+              "path": ["devices", "0", "inputs"]
+            }
+          }
+        },
+        {
+          "name": "Get Events (60 minutes)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events?node=0&minutes=60",
+              "host": ["{{baseUrl}}"],
+              "path": ["events"],
+              "query": [
+                {
+                  "key": "node",
+                  "value": "0"
+                },
+                {
+                  "key": "minutes",
+                  "value": "60"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Endpoints",
+      "item": [
+        {
+          "name": "Create Device",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nodeNum\": 1,\n  \"name\": \"Test Device\",\n  \"apiKey\": \"TEST_KEY_123\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/devices",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "devices"]
+            }
+          }
+        },
+        {
+          "name": "Update Input Settings",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Main Door\",\n  \"enabled\": true,\n  \"ncLogic\": true,\n  \"debounceMs\": 100,\n  \"description\": \"Main entrance door sensor\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/inputs/0/0",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "inputs", "0", "0"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

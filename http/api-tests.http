@@ -1,0 +1,165 @@
+### IoT Ingest API Test Requests
+
+# Variables (update these as needed)
+@baseUrl = http://localhost:5080
+@apiKey = YOUR_FIRMWARE_PASS
+@masterKey = DEBUG_MASTER_KEY_123
+
+### Health Check
+GET {{baseUrl}}/health
+
+### ESP8266 Form Ingest - Normal Pin Input (P1 = ON)
+POST {{baseUrl}}/ingest
+Content-Type: application/x-www-form-urlencoded
+
+kapilar_id=11&durum=1&pass={{apiKey}}
+
+### ESP8266 Form Ingest - Pin Input (P2 = OFF)
+POST {{baseUrl}}/ingest
+Content-Type: application/x-www-form-urlencoded
+
+kapilar_id=12&durum=0&pass={{apiKey}}
+
+### ESP8266 Form Ingest - Heartbeat (Node 0)
+POST {{baseUrl}}/ingest
+Content-Type: application/x-www-form-urlencoded
+
+kapilar_id=10&durum=0&pass={{apiKey}}
+
+### ESP8266 Form Ingest - Using Master Key
+POST {{baseUrl}}/ingest
+Content-Type: application/x-www-form-urlencoded
+
+kapilar_id=13&durum=1&pass={{masterKey}}
+
+### Batch Ingest - JSON
+POST {{baseUrl}}/ingest/batch
+Content-Type: application/json
+X-DEVICE-KEY: {{apiKey}}
+
+{
+  "items": [
+    {"kapilarId": 11, "durum": 1},
+    {"kapilarId": 12, "durum": 0},
+    {"kapilarId": 13, "durum": 1}
+  ]
+}
+
+### Login - Get JWT Tokens
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "ChangeMe123!"
+}
+
+### Extract access token from login response and save it
+# Set this manually after running login request above
+@accessToken = PUT_ACCESS_TOKEN_HERE
+
+### Get All Devices (Requires JWT)
+GET {{baseUrl}}/devices
+Authorization: Bearer {{accessToken}}
+
+### Get Device Inputs for Node 0
+GET {{baseUrl}}/devices/0/inputs
+Authorization: Bearer {{accessToken}}
+
+### Get Recent Events for Node 0 (last 60 minutes)
+GET {{baseUrl}}/events?node=0&minutes=60
+Authorization: Bearer {{accessToken}}
+
+### Get Recent Events for Node 0 (last 10 minutes)
+GET {{baseUrl}}/events?node=0&minutes=10
+Authorization: Bearer {{accessToken}}
+
+### Admin - Create New Device (Admin Only)
+POST {{baseUrl}}/admin/devices
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "nodeNum": 1,
+  "name": "Test Device",
+  "apiKey": "TEST_KEY_123",
+  "isActive": true
+}
+
+### Admin - Update Device (Admin Only)
+PUT {{baseUrl}}/admin/devices/1
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "nodeNum": 1,
+  "name": "Updated Test Device",
+  "apiKey": "UPDATED_KEY_123",
+  "isActive": true
+}
+
+### Admin - Update Input Pin Settings (Operator+)
+POST {{baseUrl}}/admin/inputs/0/0
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Main Door",
+  "enabled": true,
+  "ncLogic": true,
+  "debounceMs": 100,
+  "description": "Main entrance door sensor"
+}
+
+### Refresh Token
+# First extract refresh token from login response above
+@refreshToken = PUT_REFRESH_TOKEN_HERE
+
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Logout
+POST {{baseUrl}}/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Test Invalid API Key (Should still return 204)
+POST {{baseUrl}}/ingest
+Content-Type: application/x-www-form-urlencoded
+
+kapilar_id=11&durum=1&pass=INVALID_KEY
+
+### Test Invalid kapilar_id (Should still return 204)
+POST {{baseUrl}}/ingest
+Content-Type: application/x-www-form-urlencoded
+
+kapilar_id=999&durum=1&pass={{apiKey}}
+
+### Test Unauthorized Access to Protected Endpoint
+GET {{baseUrl}}/devices
+
+### Test Different KapilarID Values
+# Node 1, Pin 0 (KapilarID = 11)
+POST {{baseUrl}}/ingest
+Content-Type: application/x-www-form-urlencoded
+
+kapilar_id=11&durum=1&pass={{apiKey}}
+
+# Node 1, Pin 7 (KapilarID = 18) 
+POST {{baseUrl}}/ingest
+Content-Type: application/x-www-form-urlencoded
+
+kapilar_id=18&durum=0&pass={{apiKey}}
+
+# Node 2, Heartbeat (KapilarID = 20)
+POST {{baseUrl}}/ingest
+Content-Type: application/x-www-form-urlencoded
+
+kapilar_id=20&durum=0&pass={{apiKey}}
